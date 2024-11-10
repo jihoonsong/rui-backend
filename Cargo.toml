@@ -1,0 +1,17 @@
+[workspace]
+members = [
+    "backend/app",
+    "backend/rpc",
+]
+resolver = "2"
+
+[workspace.dependencies]
+rui-backend-app = { version = "0.1.0", path = "backend/app" }
+rui-backend-rpc = { version = "0.1.0", path = "backend/rpc" }
+
+[workspace.package]
+name = "rui-backend"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.81.0"
