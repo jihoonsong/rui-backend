@@ -6,3 +6,10 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+async-trait = "0.1"
+jsonrpsee = { version = "0.24", features = ["server", "macros"] }
+jsonrpsee-types = "0.24"
+thiserror = "2"
+tracing = "0.1"
