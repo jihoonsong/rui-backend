@@ -12,7 +12,6 @@ rui-backend-client = { version = "0.1.0", path = "backend/client" }
 rui-backend-rpc = { version = "0.1.0", path = "backend/rpc" }
 
 [workspace.package]
-name = "rui-backend"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
