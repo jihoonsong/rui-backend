@@ -1,3 +1,3 @@
 pub trait ClientHandlers {
-    fn add_member(&self, identity_commitment_bytes: Vec<u8>);
+    fn add_member(&self, identity_commitment: String);
 }

@@ -16,7 +16,7 @@ impl Client {
 }
 
 impl ClientHandlers for Client {
-    fn add_member(&self, identity_commitment_bytes: Vec<u8>) {
-        info!("add_member: {:?}", identity_commitment_bytes);
+    fn add_member(&self, identity_commitment: String) {
+        info!("add_member: {:?}", identity_commitment);
     }
 }

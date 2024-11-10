@@ -40,7 +40,6 @@ where
     H: ClientHandlers + Send + Sync + 'static,
 {
     async fn add_member(&self, request: AddMemberRequest) {
-        self.client_handlers
-            .add_member(request.identity_commitment_bytes);
+        self.client_handlers.add_member(request.identity_commitment);
     }
 }
