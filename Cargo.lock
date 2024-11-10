@@ -3129,6 +3129,7 @@ dependencies = [
  "num",
  "num-bigint",
  "num-traits",
+ "rui-backend-client",
  "rui-backend-rpc",
  "serde",
  "thiserror 2.0.2",
@@ -3144,6 +3145,9 @@ dependencies = [
 [[package]]
 name = "rui-backend-client"
 version = "0.1.0"
+dependencies = [
+ "tracing",
+]
 
 [[package]]
 name = "rui-backend-rpc"
@@ -3152,6 +3156,7 @@ dependencies = [
  "async-trait",
  "jsonrpsee",
  "jsonrpsee-types",
+ "rui-backend-client",
  "serde",
  "thiserror 2.0.2",
  "tokio",

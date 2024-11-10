@@ -6,6 +6,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+rui-backend-client = { workspace = true }
 rui-backend-rpc = { workspace = true }
 
 # WASM operations
@@ -37,6 +38,3 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
-
-# futures = "0.3"
-# jsonrpsee = "0.24.3"

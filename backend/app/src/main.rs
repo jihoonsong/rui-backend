@@ -1,6 +1,7 @@
 mod config;
 
 use config::Config;
+use rui_backend_client::Client;
 use rui_backend_rpc::RpcServer;
 use std::{fs, io};
 use tracing::info;
@@ -24,8 +25,11 @@ async fn run() {
         fs::read_to_string("./backend/app/Config.toml").expect("Failed to read config");
     let configs: Config = toml::from_str(&config_content).expect("Failed to parse config");
 
+    // Start the client.
+    let client = Client::new();
+
     // Start the RPC server.
-    let rpc_server = RpcServer::new(configs.address)
+    let rpc_server = RpcServer::new(configs.address, client)
         .build()
         .await
         .expect("Failed to build RPC server");

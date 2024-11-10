@@ -1,36 +1,46 @@
 use jsonrpsee::{core::RpcResult, proc_macros::rpc};
-use tracing::info;
+use rui_backend_client::ClientHandlers;
 
-use crate::{AddMemberRequest, RpcApiAddMember, RpcApiError, RpcApis, RpcError};
+use crate::{AddMemberRequest, RpcApiAddMember, RpcApis};
 
-pub(crate) struct RpcApi {}
+pub(crate) struct RpcApi<H>
+where
+    H: ClientHandlers + Send + Sync + 'static,
+{
+    client_handlers: H,
+}
 
-impl RpcApi {
-    pub fn new() -> Self {
-        Self {}
+impl<H> RpcApi<H>
+where
+    H: ClientHandlers + Send + Sync + 'static,
+{
+    pub fn new(client_handlers: H) -> Self {
+        Self { client_handlers }
     }
 }
 
 #[rpc(server, namespace = "rui")]
 pub(crate) trait RpcApi {
     #[method(name = "addMember")]
-    async fn add_member(&self, request: AddMemberRequest) -> RpcResult<String>;
+    async fn add_member(&self, request: AddMemberRequest) -> RpcResult<()>;
 }
 
 #[async_trait::async_trait]
 impl<T> RpcApiServer for T
 where
     T: RpcApis,
-    jsonrpsee_types::ErrorObject<'static>: From<T::Error>,
 {
-    async fn add_member(&self, request: AddMemberRequest) -> RpcResult<String> {
-        info!("add_member: {:?}", request);
-        Ok(RpcApiAddMember::add_member(self, request).await?)
+    async fn add_member(&self, request: AddMemberRequest) -> RpcResult<()> {
+        Ok(RpcApiAddMember::add_member(self, request).await)
     }
 }
 
-impl RpcApiError for RpcApi {
-    type Error = RpcError;
+impl<H> RpcApiAddMember for RpcApi<H>
+where
+    H: ClientHandlers + Send + Sync + 'static,
+{
+    async fn add_member(&self, request: AddMemberRequest) {
+        self.client_handlers
+            .add_member(request.identity_commitment_bytes);
+    }
 }
-
-impl RpcApiAddMember for RpcApi {}

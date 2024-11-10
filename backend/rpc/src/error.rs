@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::net::SocketAddr;
 use thiserror::Error;
 
@@ -26,8 +25,4 @@ impl From<RpcError> for jsonrpsee_types::ErrorObject<'static> {
             ),
         }
     }
-}
-
-pub(crate) trait RpcApiError: Send + Sync {
-    type Error: Into<jsonrpsee_types::ErrorObject<'static>> + Error + Send + Sync;
 }

@@ -6,6 +6,8 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+rui-backend-client = { workspace = true }
+
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 async-trait = "0.1"

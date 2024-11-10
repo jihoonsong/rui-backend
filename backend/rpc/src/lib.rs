@@ -9,9 +9,8 @@ pub use request::AddMemberRequest;
 pub use server::RpcServer;
 
 pub(crate) use api::{RpcApi, RpcApiServer};
-pub(crate) use error::RpcApiError;
 pub(crate) use handlers::RpcApiAddMember;
 
-pub(crate) trait RpcApis: RpcApiError + RpcApiAddMember + 'static {}
+pub(crate) trait RpcApis: RpcApiAddMember + Send + Sync + 'static {}
 
-impl<T> RpcApis for T where T: RpcApiError + RpcApiAddMember + 'static {}
+impl<T> RpcApis for T where T: RpcApiAddMember + Send + Sync + 'static {}
