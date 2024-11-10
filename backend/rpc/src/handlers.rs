@@ -1,7 +1,6 @@
-use std::future::Future;
-
 use crate::AddMemberRequest;
 
+#[async_trait::async_trait]
 pub(crate) trait RpcApiAddMember {
-    fn add_member(&self, request: AddMemberRequest) -> impl Future<Output = ()> + Send + Sync;
+    async fn add_member(&self, identity_commitment: AddMemberRequest);
 }

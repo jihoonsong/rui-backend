@@ -6,4 +6,10 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+sui-keys = { git = "https://github.com/mystenlabs/sui", package = "sui-keys"}
+sui_sdk = { git = "https://github.com/mystenlabs/sui", package = "sui-sdk"}
+shared-crypto = { git = "https://github.com/mystenlabs/sui", package = "shared-crypto"}
+tokio = { version = "1.2", features = ["full"] }
+async-trait = "0.1"
 tracing = "0.1"
+dirs = "5.0"

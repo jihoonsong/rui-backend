@@ -26,7 +26,12 @@ async fn run() {
     let configs: Config = toml::from_str(&config_content).expect("Failed to parse config");
 
     // Start the client.
-    let client = Client::new();
+    let client = Client::new(
+        configs.package_id,
+        configs.group_id,
+        configs.keystore_path_relative,
+    )
+    .await;
 
     // Start the RPC server.
     let rpc_server = RpcServer::new(configs.address, client)

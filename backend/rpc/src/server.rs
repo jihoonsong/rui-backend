@@ -8,7 +8,7 @@ use crate::{RpcApi, RpcApiServer, RpcError};
 
 pub struct RpcServer<H>
 where
-    H: ClientHandlers + Clone + Send + Sync + 'static,
+    H: ClientHandlers + Send + Sync + 'static,
 {
     address: SocketAddr,
     client_handlers: H,
@@ -16,7 +16,7 @@ where
 
 impl<H> RpcServer<H>
 where
-    H: ClientHandlers + Clone + Send + Sync + 'static,
+    H: ClientHandlers + Send + Sync + 'static,
 {
     pub fn new(address: SocketAddr, client_handlers: H) -> Self {
         Self {
@@ -25,8 +25,8 @@ where
         }
     }
 
-    pub async fn build(&self) -> Result<ServerHandle, RpcError> {
-        let rpc_api = RpcApi::new(self.client_handlers.clone());
+    pub async fn build(self) -> Result<ServerHandle, RpcError> {
+        let rpc_api = RpcApi::new(self.client_handlers);
 
         let mut module = RpcModule::new(());
         module

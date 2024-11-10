@@ -35,11 +35,14 @@ where
     }
 }
 
+#[async_trait::async_trait]
 impl<H> RpcApiAddMember for RpcApi<H>
 where
     H: ClientHandlers + Send + Sync + 'static,
 {
     async fn add_member(&self, request: AddMemberRequest) {
-        self.client_handlers.add_member(request.identity_commitment);
+        self.client_handlers
+            .add_member(request.identity_commitment)
+            .await;
     }
 }
