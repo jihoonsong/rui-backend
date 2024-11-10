@@ -3142,6 +3142,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rui-backend-client"
+version = "0.1.0"
+
+[[package]]
 name = "rui-backend-rpc"
 version = "0.1.0"
 dependencies = [

@@ -1,12 +1,14 @@
 [workspace]
 members = [
     "backend/app",
+    "backend/client",
     "backend/rpc",
 ]
 resolver = "2"
 
 [workspace.dependencies]
 rui-backend-app = { version = "0.1.0", path = "backend/app" }
+rui-backend-client = { version = "0.1.0", path = "backend/client" }
 rui-backend-rpc = { version = "0.1.0", path = "backend/rpc" }
 
 [workspace.package]
