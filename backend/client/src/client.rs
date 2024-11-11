@@ -136,4 +136,38 @@ impl ClientHandlers for Client {
 
         self.submit_transaction(pt).await;
     }
+
+    async fn add_answer(&self, question_id: String, answer: String) {
+        // Generate a Programmable Transaction Block.
+        let mut ptb = ProgrammableTransactionBuilder::new();
+
+        // Prepare inputs.
+        let question_object = self
+            .sui
+            .read_api()
+            .get_object_with_options(
+                question_id.parse().unwrap(),
+                SuiObjectDataOptions::default(),
+            )
+            .await
+            .unwrap()
+            .data
+            .unwrap();
+        let question_input = ptb
+            .obj(ObjectArg::ImmOrOwnedObject(question_object.object_ref()))
+            .unwrap();
+        let answer_input = ptb.pure(answer).unwrap();
+
+        ptb.command(Command::move_call(
+            self.package_id,
+            Identifier::new("board").unwrap(),
+            Identifier::new("add_answer").unwrap(),
+            vec![],
+            vec![question_input, answer_input],
+        ));
+
+        let pt = ptb.finish();
+
+        self.submit_transaction(pt).await;
+    }
 }

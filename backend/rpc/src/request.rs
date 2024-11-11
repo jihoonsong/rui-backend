@@ -4,3 +4,9 @@ use serde::{Deserialize, Serialize};
 pub struct AddMemberRequest {
     pub identity_commitment: String,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AddAnswerRequest {
+    pub question_id: String,
+    pub answer: String,
+}
