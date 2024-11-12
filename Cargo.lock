@@ -6165,6 +6165,21 @@ dependencies = [
 name = "rui-backend-app"
 version = "0.1.0"
 dependencies = [
+ "rui-backend-client",
+ "rui-backend-rpc",
+ "serde",
+ "thiserror 2.0.2",
+ "tokio",
+ "tokio-util",
+ "toml",
+ "tracing",
+ "tracing-subscriber 0.3.18",
+]
+
+[[package]]
+name = "rui-backend-client"
+version = "0.1.0"
+dependencies = [
  "ark-bn254",
  "ark-circom",
  "ark-crypto-primitives",
@@ -6175,35 +6190,20 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-std",
+ "async-trait",
+ "dirs 5.0.1",
  "fnv",
  "hex",
  "num",
  "num-bigint 0.4.6",
  "num-traits",
- "rui-backend-client",
- "rui-backend-rpc",
- "serde",
- "thiserror 2.0.2",
- "tokio",
- "tokio-util",
- "toml",
- "tracing",
- "tracing-subscriber 0.3.18",
- "wasmer",
- "wasmer-wasix",
-]
-
-[[package]]
-name = "rui-backend-client"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "dirs 5.0.1",
  "shared-crypto",
  "sui-keys",
  "sui-sdk",
  "tokio",
  "tracing",
+ "wasmer",
+ "wasmer-wasix",
 ]
 
 [[package]]

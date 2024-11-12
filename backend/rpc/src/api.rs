@@ -61,7 +61,13 @@ where
 {
     async fn add_answer(&self, request: AddAnswerRequest) {
         self.client_handlers
-            .add_answer(request.question_id, request.answer)
+            .add_answer(
+                request.secret_bytes,
+                request.message_bytes,
+                request.scope_bytes,
+                request.question_id,
+                request.answer,
+            )
             .await;
     }
 }

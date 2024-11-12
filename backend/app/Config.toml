@@ -1,4 +1,4 @@
 address = "127.0.0.1:50011"
-package_id = "0x9755edf49966a5b7bcfaf4f0a535651d980f83f971a24770618dcdef62f5354b"
-group_id = "0x90414bdf621a9deeaaeb1a20b66a6d7cf10a7744a100c8b5111d0230d22a24c2"
+package_id = "0x56a7c9ea4650ea5168e91dace42318b004824998694fc583be7c77aaa894cbf0"
+group_id = "0xfdf4f6dd1c01a43626b2df89bd4bdd795d1c76aefa0385e3ee5025e4ff90df9c"
 keystore_path_relative = ".sui/sui_config/sui.keystore"

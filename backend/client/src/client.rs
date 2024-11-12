@@ -1,8 +1,19 @@
+use ark_bn254::{Bn254, Fr};
+use ark_circom::{CircomBuilder, CircomConfig};
+use ark_crypto_primitives::snark::SNARK;
+use ark_groth16::Groth16;
+use ark_serialize::CanonicalSerialize;
+use ark_std::rand::thread_rng;
 use dirs::home_dir;
+use num::BigUint;
 use shared_crypto::intent::Intent;
+use std::vec;
 use sui_keys::keystore::{AccountKeystore, FileBasedKeystore};
 use sui_sdk::{
-    rpc_types::{SuiObjectDataOptions, SuiObjectResponseQuery, SuiTransactionBlockResponseOptions},
+    rpc_types::{
+        SuiMoveValue, SuiObjectDataOptions, SuiObjectResponseQuery, SuiParsedData,
+        SuiParsedMoveObject, SuiTransactionBlockResponseOptions,
+    },
     types::{
         base_types::{ObjectID, ObjectRef, SuiAddress},
         programmable_transaction_builder::ProgrammableTransactionBuilder,
@@ -102,6 +113,127 @@ impl Client {
 
         info!("Transaction sent: {:?}", tx_receipt.digest);
     }
+
+    async fn generate_groth16_proof(
+        &self,
+        secret_bytes: String,
+        message_bytes: String,
+        scope_bytes: String,
+    ) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
+        // Load the WASM and R1CS for witness and proof generation
+        let cfg = CircomConfig::<Fr>::new(
+            "./circuit/main_js/semaphore.wasm",
+            "./circuit/semaphore.r1cs",
+        )
+        .unwrap();
+        let mut builder = CircomBuilder::new(cfg);
+
+        // Prepare the inclusion proof input.
+
+        let identity_commitments = self.get_identity_commitments().await;
+        identity_commitments
+            .iter()
+            .for_each(|identity_commitment_bytes| {
+                builder.push_input(
+                    "members",
+                    BigUint::parse_bytes(identity_commitment_bytes, 10).unwrap(),
+                );
+            });
+        builder.push_input(
+            "secret",
+            BigUint::parse_bytes(&secret_bytes.as_bytes(), 10).unwrap(),
+        );
+        builder.push_input(
+            "message",
+            BigUint::parse_bytes(&message_bytes.as_bytes(), 10).unwrap(),
+        );
+        builder.push_input(
+            "scope",
+            BigUint::parse_bytes(&scope_bytes.as_bytes(), 10).unwrap(),
+        );
+
+        let circuit = builder.setup();
+
+        // Generate a random proving key. WARNING: This is not secure. A proving key generated from a ceremony should be used in production.
+        let mut rng = thread_rng();
+        let pk =
+            Groth16::<Bn254>::generate_random_parameters_with_reduction(circuit, &mut rng).unwrap();
+
+        let circuit = builder.build().unwrap();
+        let public_inputs = circuit.get_public_inputs().unwrap();
+
+        // Generate proof.
+        let proof = Groth16::<Bn254>::prove(&pk, circuit, &mut rng).unwrap();
+
+        // Verify the proof.
+        let pvk = Groth16::<Bn254>::process_vk(&pk.vk).unwrap();
+        let verified =
+            Groth16::<Bn254>::verify_with_processed_vk(&pvk, &public_inputs, &proof).unwrap();
+        assert!(verified);
+
+        // Serialize verifying key, proof and public inputs.
+        let mut verifying_key_bytes = Vec::new();
+        let mut proof_bytes = Vec::new();
+        let mut public_inputs_bytes = Vec::new();
+        pk.vk
+            .serialize_compressed(&mut verifying_key_bytes)
+            .unwrap();
+        proof.serialize_compressed(&mut proof_bytes).unwrap();
+        public_inputs.iter().for_each(|input| {
+            input
+                .serialize_compressed(&mut public_inputs_bytes)
+                .unwrap();
+        });
+
+        // Return verifying key, proof and public inputs.
+        (verifying_key_bytes, proof_bytes, public_inputs_bytes)
+    }
+
+    async fn get_identity_commitments(&self) -> Vec<Vec<u8>> {
+        let group = self
+            .sui
+            .read_api()
+            .get_object_with_options(
+                self.group_id,
+                SuiObjectDataOptions {
+                    show_type: false,
+                    show_owner: false,
+                    show_previous_transaction: false,
+                    show_display: false,
+                    show_content: true,
+                    show_bcs: false,
+                    show_storage_rebate: false,
+                },
+            )
+            .await
+            .unwrap();
+
+        let members = match group.data.and_then(|d| d.content) {
+            Some(SuiParsedData::MoveObject(SuiParsedMoveObject { fields, .. })) => {
+                match fields.field_value("members").unwrap() {
+                    SuiMoveValue::Vector(vec) => vec,
+                    _ => unreachable!(),
+                }
+            }
+            _ => unreachable!(),
+        };
+
+        let mut identity_commitments: Vec<Vec<u8>> = vec![b"0".to_vec(); 50];
+
+        for (i, member) in members.iter().enumerate() {
+            if let SuiMoveValue::Struct(s) = member {
+                if let SuiMoveValue::Vector(vec) = s.field_value("identity_commitment").unwrap() {
+                    vec.iter().for_each(|v| {
+                        if let SuiMoveValue::Number(num) = v {
+                            identity_commitments[i].push(*num as u8);
+                        }
+                    });
+                }
+            };
+        }
+
+        identity_commitments
+    }
 }
 
 #[async_trait::async_trait]
@@ -137,11 +269,26 @@ impl ClientHandlers for Client {
         self.submit_transaction(pt).await;
     }
 
-    async fn add_answer(&self, question_id: String, answer: String) {
+    async fn add_answer(
+        &self,
+        secret_bytes: String,
+        message_bytes: String,
+        scope_bytes: String,
+        question_id: String,
+        answer: String,
+    ) {
+        // Generate a Semaphore Groth16 proof.
+        let (verifying_key, proof_points, public_inputs) = self
+            .generate_groth16_proof(secret_bytes, message_bytes, scope_bytes)
+            .await;
+
         // Generate a Programmable Transaction Block.
         let mut ptb = ProgrammableTransactionBuilder::new();
 
         // Prepare inputs.
+        let verifying_key_input = ptb.pure(verifying_key).unwrap();
+        let proof_points_input = ptb.pure(proof_points).unwrap();
+        let public_inputs_input = ptb.pure(public_inputs).unwrap();
         let question_object = self
             .sui
             .read_api()
@@ -163,7 +310,13 @@ impl ClientHandlers for Client {
             Identifier::new("board").unwrap(),
             Identifier::new("add_answer").unwrap(),
             vec![],
-            vec![question_input, answer_input],
+            vec![
+                verifying_key_input,
+                proof_points_input,
+                public_inputs_input,
+                question_input,
+                answer_input,
+            ],
         ));
 
         let pt = ptb.finish();
